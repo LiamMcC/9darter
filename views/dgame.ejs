@@ -1,0 +1,8 @@
+lets go play <%= result[0].gameNo %>
+
+
+<ul id="data-list">
+    <% result.forEach(item => { %>
+      <li><a href="/chat/<%= item.gameNo %>?who=<%= item.uname %>">Join As <%= item.uname %></a> </li>
+    <% }); %>
+  </ul>

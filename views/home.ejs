@@ -1,0 +1,57 @@
+<a href="/chat/14">this is 14</a>
+<br>
+
+<a href="/chat/15">this is 15</a>
+
+<hr>
+<form id="joinGameForm" method="get">
+    <label for="gameId">Game Number:</label>
+    <input type="number" id="gameId" name="gameId" required>
+    <button type="submit">Join A Game</button>
+</form>
+<hr>
+<h1>Create a Game</h1>
+<h1>Add Users</h1>
+
+<form id="userForm" action="/game" method="post">
+
+    <div id="userInputs">
+        <!-- Initial text box for username -->
+        <div>
+            <label for="username">Usernames:</label>
+            <input type="text" name="username" required>
+            <input type="text" name="username" required>
+        </div>
+    </div>
+
+    <button type="button" onclick="addUserBox()">Add Box</button>
+
+    <button type="submit">Submit</button>
+
+</form>
+
+<script>
+    function addUserBox() {
+        // Create a new div with label and input elements
+        const newBox = document.createElement('div');
+        newBox.innerHTML = `
+            <label for="username">Username:</label>
+            <input type="text" name="username" required>
+        `;
+
+        // Append the new div to the userInputs div
+        document.getElementById('userInputs').appendChild(newBox);
+    }
+
+
+    // join game script
+    document.getElementById('joinGameForm').addEventListener('submit', function(event) {
+        event.preventDefault();  // Prevent the default form submission
+
+        // Get the value from the textbox
+        let gameId = parseInt(document.getElementById('gameId').value);
+
+        // Set the entire URL dynamically
+        window.location.href = "/dgame/" + parseInt(gameId);
+    });
+</script>

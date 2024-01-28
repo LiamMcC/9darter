@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>9 Darter Fun</title>
+</head>
+<body>
+  <h2>Group: <%= group %></h2>
+
+
+<hr>
+
+<ul id="data-list">
+  <% result.forEach(item => { %>
+    <li><%= item.uname %> <%= item.score %></li>
+  <% }); %>
+</ul>
+
+<hr>
+<form id="data-form">
+  <label for="name">D1</label>
+  <input type="number" max="20" id="d1" name="d1" required>
+
+  <label for="age">D2</label>
+  <input type="number" max="20" id="s2" name="d2" required>
+
+  <label for="age">D3</label>
+  <input type="number" max="20" id="s2" name="d2" required>
+
+  <button type="button" onclick="postData()">Submit</button>
+</form>
+
+<script>
+  // Update the data every 5 seconds using AJAX
+  setInterval(() => {
+    fetch('/updateData/<%= group %>') // replace with your server route for updating data
+      .then(response => response.json())
+      .then(updatedData => {
+        const dataList = document.getElementById('data-list');
+        dataList.innerHTML = updatedData.map(item => `<li>${item.uname} ${item.score}</li>`).join('');
+       // window.alert("<li>${item.uname} ${item.score}</li>")
+      })
+      .catch(error => console.error('Error fetching updated data:', error));
+  }, 20000);
+</script>
+<hr>
+
+
+  <ul id="chat-list"></ul>
+
+  <form id="chat-form">
+    <input type="text" id="message-input" placeholder="Type a message...">
+    <button type="button" onclick="sendMessage()">Send</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    socket.emit('join', '<%= group %>');
+
+    socket.on('chatMessage', (message) => {
+      const chatList = document.getElementById('chat-list');
+      const listItem = document.createElement('li');
+      listItem.textContent = message;
+      chatList.appendChild(listItem);
+    });
+
+    function sendMessage() {
+      const messageInput = document.getElementById('message-input');
+      const message = messageInput.value;
+      socket.emit('chatMessage', { message, group: '<%= group %>' });
+      messageInput.value = '';
+    }
+  </script>
+</body>
+</html>
