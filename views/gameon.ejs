@@ -48,7 +48,7 @@
 <p id="sumTotal">Sum Total: 0</p>
 
 
-  <button type="button" onclick="postData()">Save Score</button>
+  <button type="button" onclick="postData('<%= group %>')">Save Score</button>
 
 
 <script>
@@ -89,7 +89,10 @@
 
     function sendMessage() {
       const messageInput = document.getElementById('message-input');
-      const message = messageInput.value;
+      const currentUrl = new URL(window.location.href);
+      const whoFromQueryString = currentUrl.searchParams.get('who');
+      const message = whoFromQueryString +":" + " " + messageInput.value ;
+
       socket.emit('chatMessage', { message, group: '<%= group %>' });
       messageInput.value = '';
     }
@@ -156,26 +159,47 @@
       
     });
 
-
+    socket.on('resetValues', () => {
+ 
+  // Reset the values of the text boxes to 0 on all screens
+  document.getElementById('d1').value = 0;
+  document.getElementById('d2').value = 0;
+  document.getElementById('d3').value = 0;
+});
     // function to post the data of total score back to the server  // Function to handle the "Save Score" button click
-  function postData() {
-    // Call the updateSum function to calculate the sumTotal
-    updateSum();
+    function postData(x) {
+  // Call the updateSum function to calculate the sumTotal
+  updateSum();
 
-    // Make an AJAX POST request to send the sumTotal to the server
-    fetch('/updateSum', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ sumTotal, group: '<%= group %>' }),
-    })
-    .then(response => response.json())
-    .then(result => {
-      console.log('Sum Total sent to the server:', result);
-    })
-    .catch(error => console.error('Error sending Sum Total:', error));
-  }
+  // Get the game number from the query string
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  const who = urlParams.get('who'); // Assuming the parameter name is 'who'
+ const game = x
+
+   // Reset the values of the text boxes to 0
+   document.getElementById('d1').value = 0;
+  document.getElementById('d2').value = 0;
+  document.getElementById('d3').value = 0;
+
+  
+  // Get the sumTotal value
+  const sumTotal = parseInt(document.getElementById('sumTotal').innerText.split(':')[1].trim()) || 0;
+
+  // Make an AJAX POST request to send the sumTotal and game number to the server
+  fetch(`/saveScore/${sumTotal}/${who}/${game}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(() => {
+    
+  })
+  .catch(error => console.error('Error saving score:', error));
+
+
+}
   </script>
 </body>
 </html>
