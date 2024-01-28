@@ -18,18 +18,38 @@
 </ul>
 
 <hr>
-<form id="data-form">
-  <label for="name">D1</label>
-  <input type="number" max="20" id="d1" name="d1" required>
 
-  <label for="age">D2</label>
-  <input type="number" max="20" id="s2" name="d2" required>
+  <label for="d1">D1:</label>
+  <input type="number" id="d1" name="d1" placeholder="Enter value for D1"  max="20" oninput="updateSum()" onblur="handleBlur('d1')">
+  <div class="button-group">
+      <button id="btnD1" onclick="applyBonus('D', 'd1')">D</button>
+      <button id="btnT1" onclick="applyBonus('T', 'd1')">T</button>
+  </div>
+</div>
 
-  <label for="age">D3</label>
-  <input type="number" max="20" id="s2" name="d2" required>
+<div class="dsss">
+  <label for="d2">D2:</label>
+  <input type="number" id="d2" name="d2" placeholder="Enter value for D2" max="20" oninput="updateSum()" onblur="handleBlur('d2')">
+  <div class="button-group">
+      <button id="btnD2" onclick="applyBonus('D', 'd2')">D</button>
+      <button id="btnT2" onclick="applyBonus('T', 'd2')">T</button>
+  </div>
+</div>
 
-  <button type="button" onclick="postData()">Submit</button>
-</form>
+<div class="dsss">
+  <label for="d3">D3:</label>
+  <input type="number" id="d3" name="d3" placeholder="Enter value for D3" max="20" oninput="updateSum()" onblur="handleBlur('d3')">
+  <div class="button-group">
+      <button id="btnD3" onclick="applyBonus('D', 'd3')">D</button>
+      <button id="btnT3" onclick="applyBonus('T', 'd3')">T</button>
+  </div>
+</div>
+
+<p id="sumTotal">Sum Total: 0</p>
+
+
+  <button type="button" onclick="postData()">Save Score</button>
+
 
 <script>
   // Update the data every 5 seconds using AJAX
@@ -51,7 +71,7 @@
 
   <form id="chat-form">
     <input type="text" id="message-input" placeholder="Type a message...">
-    <button type="button" onclick="sendMessage()">Send</button>
+    <button type="button" onclick="sendMessage()">Chat</button>
   </form>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -73,6 +93,89 @@
       socket.emit('chatMessage', { message, group: '<%= group %>' });
       messageInput.value = '';
     }
+
+
+    // update database based on text boxes
+    function updateSum() {
+                // Get the values from the text boxes
+                let d1Value = parseInt(document.getElementById('d1').value) || 0;
+                let d2Value = parseInt(document.getElementById('d2').value) || 0;
+                let d3Value = parseInt(document.getElementById('d3').value) || 0;
+    
+                // Calculate the sum total
+                let sumTotal = d1Value + d2Value + d3Value;
+    
+                // Display the sum total on the page
+                document.getElementById('sumTotal').innerText = 'Sum Total: ' + sumTotal;
+    
+                // Emit a 'updateSum' event to the server
+                socket.emit('updateSum', { sumTotal, group: '<%= group %>' });
+            }
+    
+            function applyBonus(bonusType, textBoxId) {
+                // Get the current value of the corresponding text box
+                let currentValue = parseInt(document.getElementById(textBoxId).value) || 0;
+    
+                // Apply bonus based on 'D' or 'T'
+                if (bonusType === 'D') {
+                    currentValue *= 2;
+                } else if (bonusType === 'T') {
+                    currentValue *= 3;
+                }
+    
+                // Update the value in the corresponding text box
+                document.getElementById(textBoxId).value = currentValue;
+    
+                // Update the total sum
+                updateSum();
+                socket.emit('scoreUpdated', { textBoxId, currentValue, group: '<%= group %>' });
+            }
+    
+            function handleBlur(textBoxId) {
+      // Get the current value of the text box
+      let currentValue = parseInt(document.getElementById(textBoxId).value) || 0;
+
+      // Update the total sum
+      updateSum();
+
+      // Emit a 'scoreUpdated' event to the server
+      socket.emit('scoreUpdated', { textBoxId, currentValue, group: '<%= group %>' });
+    }
+
+
+            // Listen for 'sumUpdated' event
+            socket.on('sumUpdated', ({ sumTotal }) => {
+                // Update the displayed sum total on the client-side
+                document.getElementById('sumTotal').innerText = 'Sum Total: ' + sumTotal;
+            });
+
+            
+            socket.on('scoreUpdated', ({ textBoxId, currentValue }) => {
+      // Update the value in the corresponding text box on other screens
+      document.getElementById(textBoxId).value = currentValue;
+      
+    });
+
+
+    // function to post the data of total score back to the server  // Function to handle the "Save Score" button click
+  function postData() {
+    // Call the updateSum function to calculate the sumTotal
+    updateSum();
+
+    // Make an AJAX POST request to send the sumTotal to the server
+    fetch('/updateSum', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sumTotal, group: '<%= group %>' }),
+    })
+    .then(response => response.json())
+    .then(result => {
+      console.log('Sum Total sent to the server:', result);
+    })
+    .catch(error => console.error('Error sending Sum Total:', error));
+  }
   </script>
 </body>
 </html>

@@ -137,6 +137,21 @@ io.on('connection', (socket) => {
     socket.join(group);
   });
 
+    socket.on('updateSum', ({ sumTotal, group }) => {
+      // Broadcast the updated sum total to all connected clients
+      io.to(group).emit('sumUpdated', { sumTotal });
+  });
+
+  socket.on('disconnect', () => {
+      console.log('User disconnected');
+  });
+
+
+  socket.on('scoreUpdated', (data) => {
+    // Broadcast the 'scoreUpdated' event to all connected clients
+    io.to(data.group).emit('scoreUpdated', { textBoxId: data.textBoxId, currentValue: data.currentValue });
+  });
+
   socket.on('chatMessage', (data) => {
     io.to(data.group).emit('chatMessage', data.message);
   });
