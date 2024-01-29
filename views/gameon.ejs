@@ -1,78 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>9 Darter Fun</title>
-</head>
-<body>
-  <h2>Group: <%= group %></h2>
+
+  <%- include('../partials/header') -%>
+
+  <main>
+    <h3>Throw now: <span id="WhosGo"><%= result[1][0].uname %></span></h3>
+    <ul id="data-list">
+      <% result[0].forEach(item => { %>
+        <li style="list-style-type: none; padding: 0;"><%= item.uname %> <%= item.score %></li>
+      <% }); %>
+    </ul>
 
 
-<hr>
+    <h2>Your Scores</h2>
+        
+      <label for="d1">First Dart</label>
+      <input type="number" id="d1" name="d1" placeholder="Enter value for first Dart1"  max="20" oninput="updateSum()" onblur="handleBlur('d1')">
+      
+          <button  id="btnD1" onclick="applyBonus('D', 'd1')">Double</button>
+          <button id="btnT1" onclick="applyBonus('T', 'd1')">Triple</button>
+     <br>
+    
+         
+      <label for="d2" class="glable">Second Dart</label>
+      <input type="number" class="w3-input" id="d2" name="d2" placeholder="Enter value for Second Dart" max="20" oninput="updateSum()" onblur="handleBlur('d2')">
+      
+          <button class="w3-button w3-theme" id="btnD2" onclick="applyBonus('D', 'd2')">Double</button>
+          <button class="w3-button w3-theme" id="btnT2" onclick="applyBonus('T', 'd2')">Triple</button>
+         
+          
+      <label for="d3" class="glable">Third Dart</label>
+      <input type="number" class="w3-input" id="d3" name="d3" placeholder="Enter value for Third Dart" max="20" oninput="updateSum()" onblur="handleBlur('d3')">
+  
+      <button class="w3-button w3-theme" id="btnD3" onclick="applyBonus('D', 'd3')">Double</button>
+      <button class="w3-button w3-theme" id="btnT3" onclick="applyBonus('T', 'd3')">Triple</button>
+    
+      <h2 id="sumTotal">Sum Total: 0</h2>
+      <button class="w3-button w3-theme" type="button" onclick="postData('<%= group %>')">Save Score</button>
+  </main>
 
-<ul id="data-list">
-  <% result.forEach(item => { %>
-    <li><%= item.uname %> <%= item.score %></li>
-  <% }); %>
-</ul>
+  <main>
+    <h2>Game Chat</h2>
+  <ul id="chat-list" class="w3-ul w3-margin-bottom"></ul>
 
-<hr>
-
-  <label for="d1">D1:</label>
-  <input type="number" id="d1" name="d1" placeholder="Enter value for D1"  max="20" oninput="updateSum()" onblur="handleBlur('d1')">
-  <div class="button-group">
-      <button id="btnD1" onclick="applyBonus('D', 'd1')">D</button>
-      <button id="btnT1" onclick="applyBonus('T', 'd1')">T</button>
-  </div>
-</div>
-
-<div class="dsss">
-  <label for="d2">D2:</label>
-  <input type="number" id="d2" name="d2" placeholder="Enter value for D2" max="20" oninput="updateSum()" onblur="handleBlur('d2')">
-  <div class="button-group">
-      <button id="btnD2" onclick="applyBonus('D', 'd2')">D</button>
-      <button id="btnT2" onclick="applyBonus('T', 'd2')">T</button>
-  </div>
-</div>
-
-<div class="dsss">
-  <label for="d3">D3:</label>
-  <input type="number" id="d3" name="d3" placeholder="Enter value for D3" max="20" oninput="updateSum()" onblur="handleBlur('d3')">
-  <div class="button-group">
-      <button id="btnD3" onclick="applyBonus('D', 'd3')">D</button>
-      <button id="btnT3" onclick="applyBonus('T', 'd3')">T</button>
-  </div>
-</div>
-
-<p id="sumTotal">Sum Total: 0</p>
+  <form id="chat-form" style="margin-bottom: 90px">
+    <input class="w3-input" type="text" id="message-input" placeholder="Type a message...">
+    <button class="w3-button w3-theme" type="button" onclick="sendMessage()">Chat</button>
+  </form>
+  </main>
 
 
-  <button type="button" onclick="postData('<%= group %>')">Save Score</button>
+
+  <%- include('../partials/footer') -%>
+
+
+
+
+
+  
 
 
 <script>
   // Update the data every 5 seconds using AJAX
   setInterval(() => {
+   
     fetch('/updateData/<%= group %>') // replace with your server route for updating data
       .then(response => response.json())
       .then(updatedData => {
         const dataList = document.getElementById('data-list');
-        dataList.innerHTML = updatedData.map(item => `<li>${item.uname} ${item.score}</li>`).join('');
-       // window.alert("<li>${item.uname} ${item.score}</li>")
+        dataList.innerHTML = updatedData.updatedData.map(item => `<li style="list-style-type: none; padding: 0;">${item.uname}  <span class='purple-text'>${item.score}<span></li>`).join('');
+          const currentPlayerInfo = updatedData.currentPlayerInfo;
+          document.getElementById('WhosGo').innerHTML = currentPlayerInfo
+      //  / window.alert(currentPlayerInfo);
       })
       .catch(error => console.error('Error fetching updated data:', error));
-  }, 20000);
+  }, 2000);
 </script>
-<hr>
 
 
-  <ul id="chat-list"></ul>
 
-  <form id="chat-form">
-    <input type="text" id="message-input" placeholder="Type a message...">
-    <button type="button" onclick="sendMessage()">Chat</button>
-  </form>
+
+  
+
+  
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -83,7 +91,7 @@
     socket.on('chatMessage', (message) => {
       const chatList = document.getElementById('chat-list');
       const listItem = document.createElement('li');
-      listItem.textContent = message;
+      listItem.innerHTML = message;
       chatList.appendChild(listItem);
     });
 
@@ -91,7 +99,8 @@
       const messageInput = document.getElementById('message-input');
       const currentUrl = new URL(window.location.href);
       const whoFromQueryString = currentUrl.searchParams.get('who');
-      const message = whoFromQueryString +":" + " " + messageInput.value ;
+     
+      const message = "<span class='purple-text'>"+whoFromQueryString +":</span>" + " " + messageInput.value ;
 
       socket.emit('chatMessage', { message, group: '<%= group %>' });
       messageInput.value = '';
@@ -100,6 +109,8 @@
 
     // update database based on text boxes
     function updateSum() {
+
+      
                 // Get the values from the text boxes
                 let d1Value = parseInt(document.getElementById('d1').value) || 0;
                 let d2Value = parseInt(document.getElementById('d2').value) || 0;
@@ -201,5 +212,8 @@
 
 }
   </script>
+
+
+
 </body>
 </html>

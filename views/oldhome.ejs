@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>9 Darter Fun</title>
+
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
+</head>
+<body>
+
+<!-- Side Navigation -->
+<nav class="w3-sidebar w3-bar-block w3-card w3-animate-left w3-center" style="display:none" id="mySidebar">
+  <h1 class="w3-xxxlarge w3-text-theme">Where To</h1>
+  <button class="w3-bar-item w3-button" onclick="w3_close()">Close <i class="fa fa-remove"></i></button>
+  <a href="/" class="w3-bar-item w3-button">Home</a>
+
+</nav>
+
+<header class="w3-container w3-theme w3-padding" id="myHeader">
+  <i onclick="w3_open()" class="fa fa-bars w3-xlarge w3-button w3-theme"></i> 
+  <div class="w3-center">
+  <h4>9Darter.Fun</h4>
+  <h1 class="w3-large w3-animate-bottom">Real Time Darts App</h1>
+    <div class="w3-padding-32">
+      
+    </div>
+  </div>
+</header>
+
+<div class="w3-container">
+    <hr>
+    <div class="w3-center">
+      <h2>Join A Game</h2>
+      
+    </div>
+
+    <div class="w3-center">
+    <form id="joinGameForm" method="get">
+        <div class="w3-section">      
+            <label for="d1">Enter Game Number</label>
+        <input class="w3-input" type="number" id="gameId" name="gameId" required>
+        <br>
+        <button class="w3-button w3-teal" type="submit">Join A Game</button>
+    </form>
+</div>
+</div>
+
+
+
+<hr>
+
+<div class="w3-container">
+    <hr>
+    <div class="w3-center">
+      <h2>Create A Game</h2>
+      
+    </div>
+    <h5>Add Users Here</h5>
+
+
+    <form id="userForm" action="/game" method="post">
+
+        <div id="userInputs">
+            <!-- Initial text box for username -->
+            <div>
+              
+                <input class="w3-input" placeholder="Add username here" type="text" name="username" required pattern="[a-zA-Z0-9]+" title="Please enter text and numbers only (no special characters)">
+                <input class="w3-input"  placeholder="Add username here" type="text" name="username" required pattern="[a-zA-Z0-9]+" title="Please enter text and numbers only (no special characters)">
+            </div>
+            <br>
+        </div>
+    
+        <button class="w3-button w3-teal" type="button" onclick="addUserBox()">Add Another Box</button>
+    
+        <button class="w3-button w3-teal" type="submit">Create Game</button>
+    
+    </form>
+
+</div>
+
+
+
+
+
+<script>
+    function addUserBox() {
+        // Create a new div with label and input elements
+        const newBox = document.createElement('div');
+        newBox.innerHTML = `
+            <label for="username">Username:</label>
+            <input type="text" name="username" required>
+        `;
+
+        // Append the new div to the userInputs div
+        document.getElementById('userInputs').appendChild(newBox);
+    }
+
+
+    // join game script
+    document.getElementById('joinGameForm').addEventListener('submit', function(event) {
+        event.preventDefault();  // Prevent the default form submission
+
+        // Get the value from the textbox
+        let gameId = parseInt(document.getElementById('gameId').value);
+
+        // Set the entire URL dynamically
+        window.location.href = "/dgame/" + parseInt(gameId);
+    });
+</script>
+
+
+
+
+<script>
+    // Side navigation
+    function w3_open() {
+      var x = document.getElementById("mySidebar");
+      x.style.width = "100%";
+      x.style.fontSize = "40px";
+      x.style.paddingTop = "10%";
+      x.style.display = "block";
+    }
+    function w3_close() {
+      document.getElementById("mySidebar").style.display = "none";
+    }
+    
+    // Tabs
+    function openCity(evt, cityName) {
+      var i;
+      var x = document.getElementsByClassName("city");
+      for (i = 0; i < x.length; i++) {
+        x[i].style.display = "none";
+      }
+      var activebtn = document.getElementsByClassName("testbtn");
+      for (i = 0; i < x.length; i++) {
+        activebtn[i].className = activebtn[i].className.replace(" w3-dark-grey", "");
+      }
+      document.getElementById(cityName).style.display = "block";
+      evt.currentTarget.className += " w3-dark-grey";
+    }
+    
+    var mybtn = document.getElementsByClassName("testbtn")[0];
+    mybtn.click();
+    
+    // Accordions
+    function myAccFunc(id) {
+      var x = document.getElementById(id);
+      if (x.className.indexOf("w3-show") == -1) {
+        x.className += " w3-show";
+      } else { 
+        x.className = x.className.replace(" w3-show", "");
+      }
+    }
+    
+    // Slideshows
+    var slideIndex = 1;
+    
+    function plusDivs(n) {
+      slideIndex = slideIndex + n;
+      showDivs(slideIndex);
+    }
+    
+    function showDivs(n) {
+      var x = document.getElementsByClassName("mySlides");
+      if (n > x.length) {slideIndex = 1}    
+      if (n < 1) {slideIndex = x.length} ;
+      for (i = 0; i < x.length; i++) {
+        x[i].style.display = "none";  
+      }
+      x[slideIndex-1].style.display = "block";  
+    }
+    
+    showDivs(1);
+    
+    // Progress Bars
+    function move() {
+      var elem = document.getElementById("myBar");   
+      var width = 5;
+      var id = setInterval(frame, 10);
+      function frame() {
+        if (width == 100) {
+          clearInterval(id);
+        } else {
+          width++; 
+          elem.style.width = width + '%'; 
+          elem.innerHTML = width * 1  + '%';
+        }
+      }
+    }
+    </script>
+  </body>
+  </html>
+  
+
+
+
+
+  

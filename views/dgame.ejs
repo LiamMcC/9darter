@@ -1,8 +1,42 @@
-lets go play <%= result[0].gameNo %>
+<%- include('../partials/header') -%>
+<body>
 
 
-<ul id="data-list">
-    <% result.forEach(item => { %>
-      <li><a href="/chat/<%= item.gameNo %>?who=<%= item.uname %>">Join As <%= item.uname %></a> </li>
-    <% }); %>
-  </ul>
+<main>
+
+  <% if (!result[0]) { %>
+    <h1>This Game Does Not Exist</h1>
+  <% } else { %>
+
+    
+    <h2>Lets go play Game No: <%= result[0].gameNo %></h2>
+   
+    <p>Join Game As</p>
+    <% if (!result) { %>
+      <p>This Game Does Not Exist</p>
+    <% } else { %>
+      <% result.forEach(item => { %>
+        <a href="/chat/<%= item.gameNo %>?who=<%= item.uname %>"><%= item.uname %></a>
+        
+      <% }); %>
+    <% } %>
+
+  <% } %>
+
+  
+ 
+</main>
+
+
+
+<%- include('../partials/footer') -%>
+
+   
+
+
+
+
+
+
+</body>
+</html>

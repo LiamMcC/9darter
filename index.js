@@ -4,6 +4,16 @@ const socketIO = require('socket.io');
 
 const app = express();
 
+app.use(express.static("views")); 
+app.use(express.static("style")); 
+app.use(express.static("images")); 
+app.use(express.static("sass")); 
+app.use(express.static("js")); 
+app.use(express.static("fonts")); 
+app.use(express.static("partials")); 
+app.use(express.static("uploads")); 
+app.use(express.static("uploads/resized")); 
+
 var bodyParser = require("body-parser") // call body parser module and make use of it
 app.use(bodyParser.urlencoded({extended:true}));
 
@@ -18,7 +28,8 @@ const db = mysql.createConnection({
     user: 'root',
     port: '3306',
     password: 'Root',
-    database: 'liam'
+    database: 'liam',
+    multipleStatements: true
 });
 
 db.connect((err) => {
@@ -35,6 +46,11 @@ db.connect((err) => {
 app.set('view engine', 'ejs');
 
 
+app.get('/newstyle', (req, res) => {
+   
+  res.render('newstyle');
+});
+
 app.get('/', (req, res) => {
    
     res.render('home');
@@ -45,11 +61,12 @@ app.get('/chat/:group', (req, res) => {
     let gameId = req.params.group;
 
     // Query to get game information and users for the given game ID
-    let sql = 'select * from dusers where gameNo = ?';
+    let sql = 'select * from dusers where gameNo = ?; select uname from dusers Where gameNo = ? AND currentPlayer = ?';
     
-    let query = db.query(sql, [gameId], (err, result) => {
+    let query = db.query(sql, [gameId, gameId, 1], (err, result) => {
         if (err) throw err;
-        console.log(result);
+        const usersInfo = result[1].uname;
+     
         const group = req.params.group;
         // Render the dgame view with the result data
         res.render('gameon', { group, result });
@@ -58,21 +75,22 @@ app.get('/chat/:group', (req, res) => {
 });
 
 // routeto get new data from database when it is needed
-app.get('/updatedata/:group', (req, res) => {
+app.get('/updateData/:group', (req, res) => {
     let gameId = req.params.group;
 
   // Query to get game information and users for the given game ID
-  let sql = 'select * from dusers where gameNo = ?';
+  let sql = 'select * from dusers where gameNo = ?; select uname from dusers where gameNo = ? AND currentPlayer = ?';
   const group = req.params.group;
-  let query = db.query(sql, [gameId], (err, result) => {
+  let query = db.query(sql, [gameId, gameId, 1], (err, result) => {
     if (err) throw err;
-   // console.log("Here Liam " + result[0].uname);
+   
 
     // Extracting only the "score" property from each item in the result array
-    const updatedData = result.map(item => ({ score: item.score, uname: item.uname }));
-    
+    const updatedData = result[0].map(item => ({ score: item.score, uname: item.uname }));
+    const currentPlayerInfo = result[1][0].uname;
     // Sending an array of scores as the response
-    res.json(updatedData);
+    //console.log("Sent data:", { updatedData, currentPlayerInfo })
+    res.json({ updatedData, currentPlayerInfo });
   });
   
 });
@@ -80,7 +98,8 @@ app.get('/updatedata/:group', (req, res) => {
 // this route is the post request to create a game and all users for that game 
 app.post('/game', function(req, res) {
     // Assuming req.body.username is an array containing all the usernames
-    let usernames = req.body.username;
+    let usernames = req.body.username.map(username => username.replace(/\s+/g, '-'));
+    let startScore = req.body.startScore
     let gameId;
   
     // Insert a record into dgamess table with the first username
@@ -91,12 +110,12 @@ app.post('/game', function(req, res) {
   
         // Get the generated game ID
         gameId = gameResult.insertId;
-        console.log("the Made Game Id = " + gameId)
+       
   
         // Use a loop to insert each username into the dusers table
         for (let i = 0; i < usernames.length; i++) {
-            let insertUserSql = 'INSERT INTO dusers (uname, gameNo) VALUES (?, ?)';
-            db.query(insertUserSql, [usernames[i], gameId], (userErr, userResult) => {
+            let insertUserSql = 'INSERT INTO dusers (uname, gameNo, score, currentPlayer) VALUES (?, ?, ?, ?)';
+            db.query(insertUserSql, [usernames[i], gameId, startScore, 1], (userErr, userResult) => {
                 if (userErr) throw userErr;
   
                 // Emit a 'playerJoined' event when a new player joins
@@ -104,7 +123,7 @@ app.post('/game', function(req, res) {
   
                 // Redirect to the dgame page after all inserts are complete
                 if (i === usernames.length - 1) {
-                  console.log("the redirect Game Id = " + gameId)
+               
                     res.redirect('/dgame/' + gameId);
                 }
             });
@@ -123,7 +142,7 @@ app.post('/game', function(req, res) {
     
     let query = db.query(sql, [gameId], (err, result) => {
         if (err) throw err;
-        console.log(result);
+       
   
         // Render the dgame view with the result data
         res.render('dgame', { result });
@@ -138,15 +157,13 @@ app.post('/game', function(req, res) {
     const game = req.params.game
 
 
-    console.log('Received sumTotal:', sumTotal);
-    console.log('Received user:', who);
-    console.log('Received Game No:', game);
+   
 
     const currentUserScore = getUserScore(who, game);
     let sql = 'SELECT score from dusers where uname = ? and gameNo = ?';
     let query = db.query(sql, [who, game], (err, result) => {
         if (err) throw err;
-        console.log("****************** " + result[0].score);
+      
         updateUserScore(who, game, result[0].score - sumTotal);
         // Render the dgame view with the result data
         
@@ -157,7 +174,7 @@ app.post('/game', function(req, res) {
   
     // Now you can use the sumTotal and group variables for database insertion or any other logic
     
-  
+    rotatePlayers(game, who)
     // Perform your database insertion or other logic here...
   
     // Send a response back to the client
@@ -170,7 +187,7 @@ app.post('/game', function(req, res) {
     let sql = 'SELECT score from dusers where uname = ? and gameNo = ?';
     let query = db.query(sql, [userId, gameNo], (err, result) => {
         if (err) throw err;
-        console.log(result);
+        
   
         // Render the dgame view with the result data
         
@@ -183,11 +200,34 @@ function updateUserScore(userId, gameNo, newScore) {
     
     let query = db.query(sql, [newScore, gameNo, userId], (err, result) => {
         if (err) throw err;
-        console.log(result);
+      
   
         // Render the dgame view with the result data
         
     });
+}
+
+
+function rotatePlayers(gameNo, who) {
+  // Step 1: Retrieve the list of users for the given gameNo
+  let getUsersSql = 'select uname from dusers where gameNo = ?';
+  db.query(getUsersSql, [gameNo], (err, usersResult) => {
+      if (err) throw err;
+
+      // Extract the list of usernames
+      const users = usersResult.map(user => user.uname);
+console.log(users)
+      // Step 2: Find the index of the current player
+      const currentIndex = users.indexOf(who);
+console.log(currentIndex)
+      // Step 3: Update the currentPlayer column
+      let updatePlayersSql = 'update dusers set currentPlayer = case when uname = ? then 0 else 1 end where gameNo = ?';
+      db.query(updatePlayersSql, [who, gameNo], (err, result) => {
+          if (err) throw err;
+
+          // Optionally, you can handle the result or perform additional actions here
+      });
+  });
 }
 
   // Get old score and set new score end 
@@ -205,7 +245,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-      console.log('User disconnected');
+     
   });
 
 
@@ -221,7 +261,7 @@ io.on('connection', (socket) => {
   socket.on('resetValues', (group) => {
     // Broadcast the 'resetValues' event to all connected clients in the specified group
     io.to(group).emit('resetValues');
-    console.log('Sent resetValues event');
+   
   });
 
 
