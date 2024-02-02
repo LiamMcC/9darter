@@ -211,6 +211,16 @@
 
 
 }
+
+
+document.addEventListener('visibilitychange', function() {
+    // Check if the page is visible
+    if (!document.hidden) {
+        // Execute your functions when the page becomes visible
+        location.reload();
+        // Add more functions as needed
+    }
+});
   </script>
 
 

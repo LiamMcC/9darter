@@ -3,7 +3,7 @@ const http = require('http');
 const socketIO = require('socket.io');
 
 const app = express();
-
+var db = require('./db');
 app.use(express.static("views")); 
 app.use(express.static("style")); 
 app.use(express.static("images")); 
@@ -22,23 +22,6 @@ const io = socketIO(server);
 const mysql = require('mysql');
 const port = 3000;
 
-
-const db = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'root',
-    port: '3306',
-    password: 'Root',
-    database: 'liam',
-    multipleStatements: true
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL:', err);
-    return;
-  }
-  console.log('Connected to MySQL database');
-});
 
 
 
@@ -216,10 +199,10 @@ function rotatePlayers(gameNo, who) {
 
       // Extract the list of usernames
       const users = usersResult.map(user => user.uname);
-console.log(users)
+//console.log(users)
       // Step 2: Find the index of the current player
       const currentIndex = users.indexOf(who);
-console.log(currentIndex)
+//console.log(currentIndex)
       // Step 3: Update the currentPlayer column
       let updatePlayersSql = 'update dusers set currentPlayer = case when uname = ? then 0 else 1 end where gameNo = ?';
       db.query(updatePlayersSql, [who, gameNo], (err, result) => {
